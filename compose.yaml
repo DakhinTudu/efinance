@@ -1,0 +1,22 @@
+# ============================================
+# Docker Compose — Finance Dashboard
+# ============================================
+services:
+  finance-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-dashboard-app
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
