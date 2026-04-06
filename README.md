@@ -4,7 +4,14 @@ A **Spring Boot** REST API for managing financial records with role-based access
 
 ## 🟢 Live Demo & Application
 
-**Live API / Frontend:** [https://efinance-al0m.onrender.com/](https://efinance-al0m.onrender.com/)
+- **Frontend / Project Live On:** [https://dakhintudu.github.io/efinance/](https://dakhintudu.github.io/efinance/)
+- **Backend Live On Render:** [https://efinance-al0m.onrender.com/](https://efinance-al0m.onrender.com/)
+
+> **Frontend Deployment Note:** To keep the frontend deployment on GitHub Pages without extra setup, the frontend root directory name has been changed to `docs`.
+>
+> **Backend Deployment Note:** The application is Dockerized in order to deploy it on Render, as Render does not have a native Java environment. The backend on Render may spin down if it goes idle for 15 minutes. If login or registration isn't working immediately after loading the site, please wait a couple of minutes to let the backend restart.
+>
+> ⚠️ **Data Persistence Warning:** Because the application uses an **in-memory H2 database**, all newly created data will be **lost automatically** whenever the backend restarts (e.g., during the 15-minute idle spin-down on Render).
 
 ## ✨ Key Features & Enhancements Achieved
 
@@ -55,14 +62,26 @@ docker compose up --build
 
 ### Access Points
 
-| Resource       | URL                                    |
-|----------------|----------------------------------------|
-| API Base       | `http://localhost:8080/api/v1`          |
-| Swagger UI     | `http://localhost:8080/swagger-ui.html` |
-| H2 Console     | `http://localhost:8080/h2-console`      |
-| Health Check   | `http://localhost:8080/actuator/health` |
+#### Local Environment (`localhost`)
 
-> **H2 Console**: JDBC URL = `jdbc:h2:mem:financedb`, User = `sa`, Password = (empty)
+| Resource       | URL                                           |
+|----------------|-----------------------------------------------|
+| API Base       | `http://localhost:8080/api/v1`                |
+| Swagger UI     | `http://localhost:8080/swagger-ui/index.html` |
+| OpenAPI Docs   | `http://localhost:8080/v3/api-docs`           |
+| H2 Console     | `http://localhost:8080/h2-console`            |
+| Health Check   | `http://localhost:8080/actuator/health`       |
+
+#### Live Deployment (Render)
+
+| Resource       | URL                                                        |
+|----------------|------------------------------------------------------------|
+| API Base       | `https://efinance-al0m.onrender.com/api/v1`                |
+| Swagger UI     | `https://efinance-al0m.onrender.com/swagger-ui/index.html` |
+| OpenAPI Docs   | `https://efinance-al0m.onrender.com/v3/api-docs`           |
+| Health Check   | `https://efinance-al0m.onrender.com/actuator/health`       |
+
+> **H2 Console (Local)**: JDBC URL = `jdbc:h2:mem:financedb`, User = `sa`, Password = (empty)
 
 ---
 
