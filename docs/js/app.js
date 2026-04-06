@@ -77,8 +77,12 @@ const app = {
                 fullName: 'reg-name'
             };
 
+            const btn = document.getElementById('auth-submit');
+            this.setBtnLoading(btn, true);
+
             try {
                 const res = await this.api(endpoint, 'POST', body);
+                this.setBtnLoading(btn, false);
                 if (res.success) {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('user', JSON.stringify(res.data));
@@ -87,9 +91,11 @@ const app = {
                     this.showToast(state.isRegisterMode ? 'Account created successfully!' : 'Login successful!', 'success');
                     this.checkAuth();
                 } else {
+                    this.setBtnLoading(btn, false);
                     this.handleApiError(res, fieldMap, form);
                 }
             } catch (err) {
+                this.setBtnLoading(btn, false);
                 this.showToast('Network error. Please check your connection and try again.');
             }
         };
@@ -144,17 +150,39 @@ const app = {
 
     // --- API Wrapper ---
     async api(path, method = 'GET', body = null) {
+        this.setLoading(true);
         const headers = { 'Content-Type': 'application/json' };
         if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
         
         const config = { method, headers };
         if (body) config.body = JSON.stringify(body);
 
-        const response = await fetch(`${API_BASE}${path}`, config);
-        return await response.json();
+        try {
+            const response = await fetch(`${API_BASE}${path}`, config);
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            console.error('API Error:', err);
+            throw err;
+        } finally {
+            this.setLoading(false);
+        }
     },
 
     // --- Toast & Validation Helpers ---
+    setLoading(isLoading) {
+        const loader = document.getElementById('loader-overlay');
+        if (!loader) return;
+        if (isLoading) loader.classList.remove('hidden');
+        else loader.classList.add('hidden');
+    },
+
+    setBtnLoading(btn, isLoading) {
+        if (!btn) return;
+        if (isLoading) btn.classList.add('btn-loading');
+        else btn.classList.remove('btn-loading');
+    },
+
     showToast(message, type = 'error') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
