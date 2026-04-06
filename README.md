@@ -2,6 +2,18 @@
 
 A **Spring Boot** REST API for managing financial records with role-based access control, JWT authentication, and dashboard analytics.
 
+## 🟢 Live Demo & Application
+
+**Live API / Frontend:** [https://efinance-al0m.onrender.com/](https://efinance-al0m.onrender.com/)
+
+## ✨ Key Features & Enhancements Achieved
+
+- **Dynamic Role Management:** Fully functional admin control enabling the ability to dynamically create users and assign/update multiple roles instantly.
+- **Robust Exception Handling:** Entire backend is globally shielded by a `@RestControllerAdvice`. It predictably maps standard business exceptions (`ResourceNotFoundException`, `ForbiddenException`, `BadRequestException`) safely into consistent HTTP `ApiResponse` payloads.
+- **Deep Analytics Filtering:** Advanced Dashboard Summary engines process full timeline filtering (`startDate` -> `endDate`), powered natively by Spring Data JPA query aggregation, bypassing typical soft-deleted rows optimally.
+- **Complete Decoupling:** Secure Data Transfer Objects (DTO) entirely isolate Domain Entities from client requests/responses.
+
+
 ## Tech Stack
 
 | Layer          | Technology                      |
