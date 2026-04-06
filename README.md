@@ -73,7 +73,7 @@ docker compose up --build
 | Email    | admin@efinace.com  |
 | Password | Admin@123          |
 
-Configured via `.env` file — **never hardcoded**.
+Configured via `.env` file  **never hardcoded**.
 
 ---
 
@@ -107,7 +107,7 @@ Configured via `.env` file — **never hardcoded**.
 
 **Filters**: `type`, `categoryId`, `startDate`, `endDate`, `page`, `size`, `sortBy`, `sortDir`
 
-### Dashboard (VIEW_ANALYTICS — Analyst + Admin)
+### Dashboard (VIEW_ANALYTICS  Analyst + Admin)
 
 | Method | Endpoint                          | Description    |
 |--------|-----------------------------------|----------------|
