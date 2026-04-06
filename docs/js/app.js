@@ -62,12 +62,20 @@ const app = {
         const form = document.getElementById('auth-form');
         form.onsubmit = async (e) => {
             e.preventDefault();
+            this.clearFieldErrors(form);
+
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             const fullName = document.getElementById('reg-name')?.value;
 
             const endpoint = state.isRegisterMode ? '/auth/register' : '/auth/login';
             const body = state.isRegisterMode ? { email, password, fullName } : { email, password };
+
+            const fieldMap = {
+                email: 'auth-email',
+                password: 'auth-password',
+                fullName: 'reg-name'
+            };
 
             try {
                 const res = await this.api(endpoint, 'POST', body);
@@ -76,12 +84,13 @@ const app = {
                     localStorage.setItem('user', JSON.stringify(res.data));
                     state.token = res.data.token;
                     state.user = res.data;
+                    this.showToast(state.isRegisterMode ? 'Account created successfully!' : 'Login successful!', 'success');
                     this.checkAuth();
                 } else {
-                    alert(res.message);
+                    this.handleApiError(res, fieldMap, form);
                 }
             } catch (err) {
-                alert('Authentication failed');
+                this.showToast('Network error. Please check your connection and try again.');
             }
         };
     },
@@ -143,6 +152,70 @@ const app = {
 
         const response = await fetch(`${API_BASE}${path}`, config);
         return await response.json();
+    },
+
+    // --- Toast & Validation Helpers ---
+    showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        const icon = type === 'error' ? '⚠' : '✓';
+        toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            toast.addEventListener('animationend', () => toast.remove());
+        }, 5000);
+    },
+
+    clearFieldErrors(formEl) {
+        if (!formEl) return;
+        formEl.querySelectorAll('.form-group.has-error').forEach(g => g.classList.remove('has-error'));
+        formEl.querySelectorAll('.field-error').forEach(e => e.remove());
+    },
+
+    showFieldErrors(errors, fieldMap, formEl) {
+        this.clearFieldErrors(formEl);
+        if (!errors || typeof errors !== 'object') return false;
+
+        let shown = false;
+        Object.entries(errors).forEach(([field, message]) => {
+            const inputId = fieldMap[field];
+            if (!inputId) return;
+            const input = document.getElementById(inputId);
+            if (!input) return;
+
+            const group = input.closest('.form-group');
+            if (group) {
+                group.classList.add('has-error');
+                const errorEl = document.createElement('div');
+                errorEl.className = 'field-error';
+                errorEl.textContent = message;
+                group.appendChild(errorEl);
+                shown = true;
+            }
+        });
+
+        // Scroll first error into view
+        if (shown) {
+            const firstError = formEl.querySelector('.form-group.has-error');
+            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return shown;
+    },
+
+    handleApiError(res, fieldMap = {}, formEl = null) {
+        // If validation errors returned as field map in res.data
+        if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)
+            && formEl && Object.keys(fieldMap).length > 0) {
+            const hasFieldErrors = this.showFieldErrors(res.data, fieldMap, formEl);
+            if (hasFieldErrors) {
+                this.showToast(res.message || 'Please fix the highlighted errors');
+                return;
+            }
+        }
+        // Fallback: show the message as a toast
+        this.showToast(res.message || 'An unexpected error occurred');
     },
 
     // --- Data Loaders ---
@@ -276,19 +349,34 @@ const app = {
     async deleteRecord(id) {
         if (!confirm('Are you sure you want to delete this record?')) return;
         const res = await this.api(`/records/${id}`, 'DELETE');
-        if (res.success) this.loadRecords(); else alert(res.message);
+        if (res.success) {
+            this.showToast('Record deleted successfully', 'success');
+            this.loadRecords();
+        } else {
+            this.showToast(res.message || 'Failed to delete record');
+        }
     },
 
     async deleteCategory(id) {
         if (!confirm('Are you sure? This will not delete records but categories will be removed.')) return;
         const res = await this.api(`/categories/${id}`, 'DELETE');
-        if (res.success) this.loadCategoriesTable(); else alert(res.message);
+        if (res.success) {
+            this.showToast('Category deleted successfully', 'success');
+            this.loadCategoriesTable();
+        } else {
+            this.showToast(res.message || 'Failed to delete category');
+        }
     },
 
     async deactivateUser(id) {
         if (!confirm('Deactivate this user? They will not be able to login.')) return;
         const res = await this.api(`/users/${id}`, 'DELETE');
-        if (res.success) this.loadUsersTable(); else alert(res.message);
+        if (res.success) {
+            this.showToast('User deactivated successfully', 'success');
+            this.loadUsersTable();
+        } else {
+            this.showToast(res.message || 'Failed to deactivate user');
+        }
     },
 
     bindFilters() {
@@ -350,6 +438,9 @@ const app = {
         document.getElementById('close-modal').onclick = () => container.classList.add('hidden');
         document.getElementById('record-form').onsubmit = async (e) => {
             e.preventDefault();
+            const recordForm = document.getElementById('record-form');
+            this.clearFieldErrors(recordForm);
+
             const body = {
                 amount: document.getElementById('modal-amount').value,
                 type: document.getElementById('modal-type').value,
@@ -357,14 +448,28 @@ const app = {
                 recordDate: document.getElementById('modal-date').value,
                 description: document.getElementById('modal-desc').value
             };
+            const fieldMap = {
+                amount: 'modal-amount',
+                type: 'modal-type',
+                categoryId: 'modal-category',
+                recordDate: 'modal-date',
+                description: 'modal-desc'
+            };
             const endpoint = record ? `/records/${record.id}` : '/records';
             const method = record ? 'PUT' : 'POST';
-            const res = await this.api(endpoint, method, body);
-            if (res.success) {
-                container.classList.add('hidden');
-                this.loadViewData(state.activeView);
-                if (state.activeView === 'records') this.loadDashboard(); // Update dash stats too
-            } else alert(res.message);
+            try {
+                const res = await this.api(endpoint, method, body);
+                if (res.success) {
+                    container.classList.add('hidden');
+                    this.showToast(record ? 'Record updated successfully' : 'Record created successfully', 'success');
+                    this.loadViewData(state.activeView);
+                    if (state.activeView === 'records') this.loadDashboard();
+                } else {
+                    this.handleApiError(res, fieldMap, recordForm);
+                }
+            } catch (err) {
+                this.showToast('Network error. Please try again.');
+            }
         };
     },
 
@@ -395,18 +500,32 @@ const app = {
         document.getElementById('close-modal').onclick = () => container.classList.add('hidden');
         document.getElementById('category-form').onsubmit = async (e) => {
             e.preventDefault();
+            const catForm = document.getElementById('category-form');
+            this.clearFieldErrors(catForm);
+
             const body = {
                 name: document.getElementById('modal-cat-name').value,
                 description: document.getElementById('modal-cat-desc').value
             };
+            const fieldMap = {
+                name: 'modal-cat-name',
+                description: 'modal-cat-desc'
+            };
             const endpoint = category ? `/categories/${category.id}` : '/categories';
             const method = category ? 'PUT' : 'POST';
-            const res = await this.api(endpoint, method, body);
-            if (res.success) {
-                container.classList.add('hidden');
-                this.loadViewData('categories');
-                this.loadCategories(); // Update global category state
-            } else alert(res.message);
+            try {
+                const res = await this.api(endpoint, method, body);
+                if (res.success) {
+                    container.classList.add('hidden');
+                    this.showToast(category ? 'Category updated' : 'Category created', 'success');
+                    this.loadViewData('categories');
+                    this.loadCategories();
+                } else {
+                    this.handleApiError(res, fieldMap, catForm);
+                }
+            } catch (err) {
+                this.showToast('Network error. Please try again.');
+            }
         };
     },
 
@@ -462,6 +581,9 @@ const app = {
         document.getElementById('close-modal').onclick = () => container.classList.add('hidden');
         document.getElementById('user-form').onsubmit = async (e) => {
             e.preventDefault();
+            const userForm = document.getElementById('user-form');
+            this.clearFieldErrors(userForm);
+
             const roleSelect = document.getElementById('modal-user-roles');
             const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
             
@@ -477,13 +599,28 @@ const app = {
                 body.status = document.getElementById('modal-user-status').value;
             }
 
+            const fieldMap = {
+                fullName: 'modal-user-name',
+                email: 'modal-user-email',
+                password: 'modal-user-password',
+                roleNames: 'modal-user-roles',
+                status: 'modal-user-status'
+            };
+
             const endpoint = user ? `/users/${user.id}` : '/users';
             const method = user ? 'PUT' : 'POST';
-            const res = await this.api(endpoint, method, body);
-            if (res.success) {
-                container.classList.add('hidden');
-                this.loadViewData('users');
-            } else alert(res.message);
+            try {
+                const res = await this.api(endpoint, method, body);
+                if (res.success) {
+                    container.classList.add('hidden');
+                    this.showToast(user ? 'User updated successfully' : 'User created successfully', 'success');
+                    this.loadViewData('users');
+                } else {
+                    this.handleApiError(res, fieldMap, userForm);
+                }
+            } catch (err) {
+                this.showToast('Network error. Please try again.');
+            }
         };
     },
 
