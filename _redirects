@@ -1,0 +1,4 @@
+/*  /index.html  200
+# This redirect allows history pushstate (SPA) to work on Netlify.
+# Even though we use hidden divs currently, this will support any 
+# future evolution to browser-level URL routing.
