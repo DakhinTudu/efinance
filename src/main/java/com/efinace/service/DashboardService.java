@@ -3,6 +3,7 @@ package com.efinace.service;
 import com.efinace.dto.response.DashboardSummaryResponse;
 import com.efinace.dto.response.MonthlyTrendResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -11,7 +12,7 @@ import java.util.List;
 public interface DashboardService {
 
     /** Get overall dashboard summary (totals, category breakdown, recent activity) */
-    DashboardSummaryResponse getSummary();
+    DashboardSummaryResponse getSummary(LocalDate startDate, LocalDate endDate);
 
     /** Get monthly income/expense/net trends */
     List<MonthlyTrendResponse> getMonthlyTrends();

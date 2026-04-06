@@ -1,5 +1,6 @@
 package com.efinace.service.impl;
 
+import com.efinace.dto.request.UserCreateRequest;
 import com.efinace.dto.request.UserUpdateRequest;
 import com.efinace.dto.response.UserResponse;
 import com.efinace.entity.Role;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,42 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public UserResponse createUser(UserCreateRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already in use: " + request.getEmail());
+        }
+
+        Set<Role> roles;
+        if (request.getRoleNames() != null && !request.getRoleNames().isEmpty()) {
+            roles = request.getRoleNames().stream()
+                    .map(name -> {
+                        RoleName roleName = parseRoleName(name);
+                        return roleRepository.findByName(roleName)
+                                .orElseThrow(() -> new BadRequestException("Role not found: " + name));
+                    })
+                    .collect(Collectors.toSet());
+        } else {
+            Role defaultRole = roleRepository.findByName(RoleName.VIEWER)
+                    .orElseThrow(() -> new BadRequestException("Default role not found"));
+            roles = Set.of(defaultRole);
+        }
+
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .status(UserStatus.ACTIVE)
+                .roles(roles)
+                .build();
+
+        user = userRepository.save(user);
+        logger.info("Admin created new user: {}", user.getEmail());
+        return userMapper.toResponse(user);
+    }
 
     @Override
     @Transactional(readOnly = true)

@@ -2,6 +2,7 @@ package com.efinace.controller;
 
 import com.efinace.dto.ApiResponse;
 import com.efinace.dto.PaginatedResponse;
+import com.efinace.dto.request.UserCreateRequest;
 import com.efinace.dto.request.UserUpdateRequest;
 import com.efinace.dto.response.UserResponse;
 import com.efinace.service.UserService;
@@ -52,6 +53,14 @@ public class UserController {
                 .build();
 
         return responseBuilder.paginated(users.getContent(), meta, "Users retrieved successfully", HttpStatus.OK);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @Operation(summary = "Create user", description = "Admin creates a new user and assigns roles")
+    public ResponseEntity<ApiResponse<?>> createUser(@Valid @RequestBody UserCreateRequest request) {
+        UserResponse user = userService.createUser(request);
+        return responseBuilder.success(user, "User created successfully", HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")

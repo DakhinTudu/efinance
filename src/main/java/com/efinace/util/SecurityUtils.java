@@ -1,6 +1,7 @@
 package com.efinace.util;
 
 import com.efinace.security.CustomUserDetails;
+import com.efinace.exception.ForbiddenException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,7 +33,7 @@ public final class SecurityUtils {
     public static Long getCurrentUserId() {
         return getCurrentUser()
                 .map(CustomUserDetails::getId)
-                .orElseThrow(() -> new RuntimeException("No authenticated user found"));
+                .orElseThrow(() -> new ForbiddenException("No authenticated user found"));
     }
 
     /**

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -36,8 +37,8 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @Transactional(readOnly = true)
-    public DashboardSummaryResponse getSummary() {
-        List<FinancialRecord> records = recordRepository.findAllByDeletedFalse();
+    public DashboardSummaryResponse getSummary(LocalDate startDate, LocalDate endDate) {
+        List<FinancialRecord> records = recordRepository.findAnalyticsWithFilters(startDate, endDate);
 
         // Aggregate total income using stream reduce
         BigDecimal totalIncome = records.stream()

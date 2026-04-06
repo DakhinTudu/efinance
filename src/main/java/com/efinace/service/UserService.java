@@ -10,6 +10,9 @@ import org.springframework.data.domain.Pageable;
  */
 public interface UserService {
 
+    /** Create a new user (admin only) */
+    UserResponse createUser(com.efinace.dto.request.UserCreateRequest request);
+
     /** Get all users with pagination */
     Page<UserResponse> getAllUsers(Pageable pageable);
 

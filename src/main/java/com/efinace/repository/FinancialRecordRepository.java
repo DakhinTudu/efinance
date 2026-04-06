@@ -43,6 +43,19 @@ public interface FinancialRecordRepository extends JpaRepository<FinancialRecord
     /** All non-deleted records (for analytics aggregation) */
     List<FinancialRecord> findAllByDeletedFalse();
 
+    /** Filtered non-deleted records for dashboard analytics */
+    @Query("""
+        SELECT fr FROM FinancialRecord fr
+        WHERE fr.deleted = false
+          AND (:startDate IS NULL OR fr.recordDate >= :startDate)
+          AND (:endDate IS NULL OR fr.recordDate <= :endDate)
+        ORDER BY fr.recordDate DESC
+    """)
+    List<FinancialRecord> findAnalyticsWithFilters(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     /** Recent non-deleted records, limited and ordered */
     List<FinancialRecord> findTop10ByDeletedFalseOrderByCreatedAtDesc();
 }

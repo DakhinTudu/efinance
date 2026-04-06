@@ -48,7 +48,7 @@ public class DataInitializer implements CommandLineRunner {
                 .orElseThrow(() -> new RuntimeException("ADMIN role not found in database. Check db.sql seed data."));
 
         User admin = User.builder()
-                .fullName("Arjun Sharma")
+                .fullName("Daxin Tudu")
                 .email(adminEmail)
                 .password(passwordEncoder.encode(adminPassword))
                 .status(UserStatus.ACTIVE)
