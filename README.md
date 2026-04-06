@@ -27,7 +27,6 @@ A **Spring Boot** REST API for managing financial records with role-based access
 ```bash
 # Clone and navigate
 git clone <repo-url>
-cd Zorvyn
 
 # Copy environment template and edit if needed
 cp .env.example .env
